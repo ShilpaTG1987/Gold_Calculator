@@ -42,7 +42,6 @@
     font-family: 'Outfit', sans-serif;
     height: 100vh;
     overflow: hidden;
-    /* Subtle dot-grid texture */
     background-image: radial-gradient(circle, #D8CDB8 1px, transparent 1px);
     background-size: 28px 28px;
     background-position: 0 0;
@@ -130,15 +129,57 @@
     padding: 3px 10px;
   }
 
-  /* ─── PAGE 1: Input ─── */
-  .input-wrap {
-    max-width: 480px;
-    margin: 0 auto;
+  /* ─── Split Screen Layout for Page 1 ─── */
+  .split-layout {
+    display: flex;
+    min-height: calc(100vh - 60px);
+    width: 100%;
+  }
+
+  .split-left {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 36px 20px 60px;
   }
 
+  .split-right {
+    flex: 1;
+    background: var(--surface2);
+    border-left: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .side-image-container {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .side-image-container a {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .side-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ─── PAGE 1: Input ─── */
+  .input-wrap {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
   .section-eyebrow {
-    font-size: 0.rem;
+    font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -167,7 +208,6 @@
     overflow: hidden;
   }
 
-  /* Gold accent top stripe */
   .input-card::before {
     content: '';
     position: absolute;
@@ -288,7 +328,6 @@
     padding: 28px 18px 60px;
   }
 
-  /* Summary pill bar */
   .summary-bar {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -326,7 +365,6 @@
     font-family: 'Outfit', sans-serif;
   }
 
-  /* Grid */
   .cards-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -353,7 +391,6 @@
     transition: transform 0.22s, box-shadow 0.22s;
   }
 
-  /* Karat-specific accent colours */
   .result-card.k22::before { background: linear-gradient(90deg, #D4A017, #E8C050); }
   .result-card.k20::before { background: linear-gradient(90deg, #B8860B, #D4A017); }
   .result-card.k18::before { background: linear-gradient(90deg, #9A7008, #B8860B); }
@@ -379,7 +416,6 @@
     box-shadow: var(--shadow-lg);
   }
 
-  /* Card header */
   .card-header {
     display: flex;
     align-items: center;
@@ -409,7 +445,6 @@
     text-transform: uppercase;
   }
 
-  /* Line items */
   .line-item {
     display: flex;
     justify-content: space-between;
@@ -438,11 +473,9 @@
     margin: 8px 0;
   }
 
-  /* GST row */
   .gst-line .li-name { color: var(--amber); font-weight: 500; }
   .gst-line .li-val  { color: var(--amber); }
 
-  /* Total row — fully visible, strong contrast */
   .total-row {
     display: flex;
     justify-content: space-between;
@@ -462,7 +495,6 @@
     color: var(--gold);
   }
 
-  /* TOTAL PRICE — Cormorant, dark amber, fully visible */
   .total-value {
     font-family: 'Times New Roman', Times, serif;
     font-size: 1.40rem;
@@ -472,7 +504,6 @@
     line-height: 1;
   }
 
-  /* Toast */
   .toast {
     position: fixed;
     bottom: 28px; left: 50%;
@@ -491,8 +522,17 @@
   }
   .toast.show { transform: translateX(-50%) translateY(0); }
 
-  /* Responsive */
-  @media (max-width: 500px) {
+  /* Responsive Adjustments */
+  @media (max-width: 850px) {
+    .split-layout {
+      flex-direction: column;
+      min-height: auto;
+    }
+    .split-right {
+      height: 300px;
+      border-left: none;
+      border-top: 1px solid var(--border);
+    }
     .cards-grid { grid-template-columns: 1fr; }
     .result-card:nth-child(3) { grid-column: auto; max-width: 100%; }
     .summary-bar { flex-wrap: wrap; gap: 12px; }
@@ -512,45 +552,57 @@
       <span class="header-badge">India · GST Incl.</span>
     </header>
 
-    <div class="input-wrap">
-      <p class="section-eyebrow">Gold Calculator</p>
+    <div class="split-layout">
+      <!-- Left side: Calculations Input -->
+      <div class="split-left">
+        <div class="input-wrap">
+          <p class="section-eyebrow">Gold Calculator</p>
 
-      <div class="input-card">
-        <h2 class="section-title">Enter gold details to get started</h2>
-        <div class="field">
-          <label><span class="dot"></span>Present Day Gold Price (per gram)</label>
-          <div class="prefix-wrap">
-            <span class="sym">₹</span>
-            <input type="number" id="goldPrice" placeholder="e.g. 9300" min="0">
+          <div class="input-card">
+            <h2 class="section-title">Enter gold details to get started</h2>
+            <div class="field">
+              <label><span class="dot"></span>Present Day Gold Price (per gram)</label>
+              <div class="prefix-wrap">
+                <span class="sym">₹</span>
+                <input type="number" id="goldPrice" placeholder="e.g. 9300" min="0">
+              </div>
+            </div>
+
+            <div class="field">
+              <label><span class="dot"></span>Net Weight</label>
+              <div class="suffix-wrap">
+                <input type="number" id="netWeight" placeholder="e.g. 10.000" step="0.001" min="0">
+                <span class="unit">grams</span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label><span class="dot"></span>Wastage Percentage</label>
+              <div class="select-wrap">
+                <select id="wastage">
+                  <option value="">Select wastage %</option>
+                  <option value="6">6%</option>
+                  <option value="8">8%</option>
+                  <option value="10">10%</option>
+                  <option value="12">12%</option>
+                  <option value="15">15%</option>
+                </select>
+                <span class="chev">▾</span>
+              </div>
+            </div>
+
+            <button class="btn-calculate" onclick="calculate()">
+              Calculate Price <span class="arrow">→</span>
+            </button>
           </div>
         </div>
+      </div>
 
-        <div class="field">
-          <label><span class="dot"></span>Net Weight</label>
-          <div class="suffix-wrap">
-            <input type="number" id="netWeight" placeholder="e.g. 10.000" step="0.001" min="0">
-            <span class="unit">grams</span>
-          </div>
+      <!-- Right side: Babiya Life Style Image -->
+      <div class="split-right">
+        <div class="side-image-container">
+          <a href="https://babiyalifestyle.com"><img src="./babiyalifestyle.jpeg" alt="BabiyaLifeStyle"></a>
         </div>
-
-        <div class="field">
-          <label><span class="dot"></span>Wastage Percentage</label>
-          <div class="select-wrap">
-            <select id="wastage">
-              <option value="">Select wastage %</option>
-              <option value="6">6%</option>
-              <option value="8">8%</option>
-              <option value="10">10%</option>
-              <option value="12">12%</option>
-              <option value="15">15%</option>
-            </select>
-            <span class="chev">▾</span>
-          </div>
-        </div>
-
-        <button class="btn-calculate" onclick="calculate()">
-          Calculate Price <span class="arrow">→</span>
-        </button>
       </div>
     </div>
   </div>
@@ -649,7 +701,6 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  // ── Formatters ──────────────────────────────────────────
   const fmt   = n => '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmtWt = n => parseFloat(n).toFixed(3) + ' g';
 
@@ -660,13 +711,11 @@
     setTimeout(() => t.classList.remove('show'), 2800);
   }
 
-  // ── Java-matched calculation logic ──────────────────────
-  // Mirrors GoldCalculator.KaratResult constructor exactly
   function calcKarat(goldPrice, purity, netWeight, wastagePercent) {
-    const pricePerGram  = goldPrice * purity * (1- 0.029);
+    const pricePerGram  = goldPrice * purity * (1 - 0.029);
     const basePrice     = netWeight * pricePerGram;
     const wastageAmount = basePrice * (wastagePercent / 100.0);
-    const gst           = (basePrice + wastageAmount) * 0.03;   // 3% on (base + wastage)
+    const gst           = (basePrice + wastageAmount) * 0.03;
     const totalPrice    = basePrice + wastageAmount + gst;
     return { pricePerGram, basePrice, wastageAmount, gst, totalPrice };
   }
@@ -677,7 +726,6 @@
     { id: '18', purity: 0.75 },
   ];
 
-  // ── Main calculate ──────────────────────────────────────
   function calculate() {
     const goldPrice    = parseFloat(document.getElementById('goldPrice').value);
     const netWeight    = parseFloat(document.getElementById('netWeight').value);
