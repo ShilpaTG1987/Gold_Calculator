@@ -132,8 +132,8 @@
   /* ─── Split Screen Layout for Page 1 ─── */
   .split-layout {
     display: flex;
-    min-height: calc(100vh - 60px);
-    width: 80%;
+    height: calc(100vh - 60px);
+    width: 100%;
   }
 
   .split-left {
@@ -141,33 +141,44 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 36px 20px 60px;
+    padding: 36px 20px;
+    overflow-y: auto;
   }
 
   .split-right {
     flex: 1;
     background: var(--surface2);
     border-left: 1px solid var(--border);
-    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
     overflow: hidden;
   }
 
   .side-image-container {
     width: 100%;
     height: 100%;
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .side-image-container a {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
     height: 100%;
+    text-decoration: none;
   }
 
   .side-image-container img {
-    width: 80%;
-    height: 80%;
-    object-fit: cover;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
     display: block;
   }
 
@@ -526,10 +537,10 @@
   @media (max-width: 850px) {
     .split-layout {
       flex-direction: column;
-      min-height: auto;
+      height: auto;
     }
     .split-right {
-      height: 300px;
+      height: 350px;
       border-left: none;
       border-top: 1px solid var(--border);
     }
