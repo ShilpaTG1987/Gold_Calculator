@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gold Price Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold:        #B8860B;
+    --gold-mid:    #D4A017;
+    --gold-bright: #E8B420;
+    --gold-pale:   #FDF3DC;
+    --gold-border: #E8D5A0;
+    --amber:       #C8870A;
+
+    --bg:          #FAFAF8;
+    --bg-warm:     #F7F4EE;
+    --surface:     #FFFFFF;
+    --surface2:    #F9F7F2;
+
+    --text:        #1C1810;
+    --text-mid:    #5C5240;
+    --text-soft:   #9A8E78;
+    --text-pale:   #C8BFA8;
+
+    --border:      #E8E0D0;
+    --border-mid:  #D8CDB8;
+
+    --shadow-sm:   0 1px 4px rgba(100,80,20,0.07), 0 2px 12px rgba(100,80,20,0.05);
+    --shadow-md:   0 4px 20px rgba(100,80,20,0.10), 0 1px 4px rgba(100,80,20,0.06);
+    --shadow-lg:   0 8px 40px rgba(100,80,20,0.13), 0 2px 8px rgba(100,80,20,0.07);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { font-size: 16px; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    /* Subtle dot-grid texture */
+    background-image: radial-gradient(circle, #D8CDB8 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-position: 0 0;
+  }
+
+  /* ─── Sliding page shell ─── */
+  .pages {
+    display: flex;
+    width: 200vw;
+    height: 100vh;
+    transition: transform 0.60s cubic-bezier(0.76, 0, 0.24, 1);
+  }
+  .pages.show-results { transform: translateX(-100vw); }
+
+  .page {
+    width: 100vw;
+    height: 100vh;
+    overflow-y: auto;
+    flex-shrink: 0;
+    background: transparent;
+  }
+
+  /* ─── Header ─── */
+  header {
+    background: rgba(255,255,255,0.92);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 1px 0 var(--border), 0 2px 12px rgba(100,80,20,0.06);
+  }
+
+  .back-btn {
+    background: none;
+    border: 1px solid var(--border-mid);
+    border-radius: 8px;
+    color: var(--gold);
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 5px 12px;
+    transition: all 0.18s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    letter-spacing: 0.02em;
+  }
+  .back-btn:hover {
+    background: var(--gold-pale);
+    border-color: var(--gold-border);
+    color: var(--amber);
+  }
+
+  .header-icon {
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 0.01em;
+    flex: 1;
+  }
+
+  .header-badge {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+  }
+
+  /* ─── PAGE 1: Input ─── */
+  .input-wrap {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 36px 20px 60px;
+  }
+
+  .section-eyebrow {
+    font-size: 0.rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold-mid);
+    margin-bottom: 6px;
+    text-align: center;
+  }
+
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.7rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 26px;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  .input-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 30px 26px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Gold accent top stripe */
+  .input-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold-mid), var(--gold-bright), var(--gold-mid));
+  }
+
+  .field { margin-bottom: 22px; }
+  .field:last-of-type { margin-bottom: 0; }
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.73rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    margin-bottom: 8px;
+  }
+
+  label .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--gold-mid);
+    flex-shrink: 0;
+  }
+
+  input, select {
+    width: 100%;
+    background: var(--bg-warm);
+    border: 1.5px solid var(--border);
+    border-radius: 11px;
+    padding: 13px 16px;
+    font-size: 1rem;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 400;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--gold-mid);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(184,134,11,0.10);
+  }
+
+  input::placeholder { color: var(--text-pale); }
+  select option { background: #fff; color: var(--text); }
+
+  .prefix-wrap { position: relative; }
+  .prefix-wrap .sym {
+    position: absolute; left: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--gold); font-weight: 600; font-size: 1rem;
+    pointer-events: none; z-index: 1;
+  }
+  .prefix-wrap input { padding-left: 28px; }
+
+  .suffix-wrap { position: relative; }
+  .suffix-wrap .unit {
+    position: absolute; right: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-soft); font-size: 0.85rem;
+    pointer-events: none;
+  }
+
+  .select-wrap { position: relative; }
+  .select-wrap .chev {
+    position: absolute; right: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--gold); font-size: 0.9rem;
+    pointer-events: none;
+  }
+
+  .btn-calculate {
+    width: 100%;
+    background: linear-gradient(135deg, var(--gold-mid) 0%, var(--amber) 100%);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 16px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 28px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 18px rgba(184,134,11,0.30);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-calculate:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(184,134,11,0.38);
+  }
+  .btn-calculate:active { transform: translateY(0); box-shadow: 0 2px 10px rgba(184,134,11,0.22); }
+
+  .btn-calculate .arrow {
+    font-size: 1.1rem;
+    transition: transform 0.2s;
+  }
+  .btn-calculate:hover .arrow { transform: translateX(4px); }
+
+  /* ─── PAGE 2: Results ─── */
+  .results-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 28px 18px 60px;
+  }
+
+  /* Summary pill bar */
+  .summary-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex;
+    gap: 0;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+
+  .summary-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 0 16px;
+    border-right: 1px solid var(--border);
+  }
+  .summary-item:first-child { padding-left: 4px; }
+  .summary-item:last-child  { border-right: none; }
+
+  .s-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+  }
+  .s-val {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gold);
+    font-family: 'Outfit', sans-serif;
+  }
+
+  /* Grid */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+
+  .result-card:nth-child(3) {
+    grid-column: 1 / -1;
+    max-width: calc(50% - 9px);
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 22px 20px 20px;
+    box-shadow: var(--shadow-sm);
+    opacity: 0;
+    transform: translateY(18px);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.22s, box-shadow 0.22s;
+  }
+
+  /* Karat-specific accent colours */
+  .result-card.k22::before { background: linear-gradient(90deg, #D4A017, #E8C050); }
+  .result-card.k20::before { background: linear-gradient(90deg, #B8860B, #D4A017); }
+  .result-card.k18::before { background: linear-gradient(90deg, #9A7008, #B8860B); }
+
+  .result-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .result-card.visible { animation: riseIn 0.48s cubic-bezier(0.22,1,0.36,1) forwards; }
+  .result-card:nth-child(1).visible { animation-delay: 0.00s; }
+  .result-card:nth-child(2).visible { animation-delay: 0.09s; }
+  .result-card:nth-child(3).visible { animation-delay: 0.18s; }
+
+  @keyframes riseIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Card header */
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .karat-name {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 1.22rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.01em;
+  }
+
+  .purity-chip {
+    background: var(--gold-pale);
+    border: 1px solid var(--gold-border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Line items */
+  .line-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 4.5px 0;
+  }
+
+  .li-name {
+    font-size: 0.80rem;
+    color: var(--text-soft);
+    font-weight: 400;
+  }
+
+  .li-val {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-mid);
+    text-align: right;
+  }
+
+  .li-val.accent { color: var(--gold); }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 8px 0;
+  }
+
+  /* GST row */
+  .gst-line .li-name { color: var(--amber); font-weight: 500; }
+  .gst-line .li-val  { color: var(--amber); }
+
+  /* Total row — fully visible, strong contrast */
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: var(--gold-pale);
+    border: 1px solid var(--gold-border);
+    border-radius: 10px;
+  }
+
+  .total-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  /* TOTAL PRICE — Cormorant, dark amber, fully visible */
+  .total-value {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 1.40rem;
+    font-weight: 700;
+    color: var(--amber);
+    letter-spacing: 0.01em;
+    line-height: 1;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 28px; left: 50%;
+    transform: translateX(-50%) translateY(70px);
+    background: #fff;
+    border: 1px solid #F0D0B0;
+    color: #A05010;
+    padding: 11px 22px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+    transition: transform 0.28s ease;
+    z-index: 100;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* Responsive */
+  @media (max-width: 500px) {
+    .cards-grid { grid-template-columns: 1fr; }
+    .result-card:nth-child(3) { grid-column: auto; max-width: 100%; }
+    .summary-bar { flex-wrap: wrap; gap: 12px; }
+    .summary-item { border-right: none; padding: 0; flex: none; width: calc(50% - 6px); }
+  }
+</style>
+</head>
+<body>
+
+<div class="pages" id="pages">
+
+  <!-- ══════════ PAGE 1 — INPUT ══════════ -->
+  <div class="page" id="page1">
+    <header>
+      <span class="header-icon">🪙</span>
+      <h1>Shiva Jewellers</h1>
+      <span class="header-badge">India · GST Incl.</span>
+    </header>
+
+    <div class="input-wrap">
+      <p class="section-eyebrow">Gold Calculator</p>
+
+      <div class="input-card">
+        <h2 class="section-title">Enter gold details to get started</h2>
+        <div class="field">
+          <label><span class="dot"></span>Present Day Gold Price (per gram)</label>
+          <div class="prefix-wrap">
+            <span class="sym">₹</span>
+            <input type="number" id="goldPrice" placeholder="e.g. 9300" min="0">
+          </div>
+        </div>
+
+        <div class="field">
+          <label><span class="dot"></span>Net Weight</label>
+          <div class="suffix-wrap">
+            <input type="number" id="netWeight" placeholder="e.g. 10.000" step="0.001" min="0">
+            <span class="unit">grams</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label><span class="dot"></span>Wastage Percentage</label>
+          <div class="select-wrap">
+            <select id="wastage">
+              <option value="">Select wastage %</option>
+              <option value="6">6%</option>
+              <option value="8">8%</option>
+              <option value="10">10%</option>
+              <option value="12">12%</option>
+              <option value="15">15%</option>
+            </select>
+            <span class="chev">▾</span>
+          </div>
+        </div>
+
+        <button class="btn-calculate" onclick="calculate()">
+          Calculate Price <span class="arrow">→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ PAGE 2 — RESULTS ══════════ -->
+  <div class="page" id="page2">
+    <header>
+      <button class="back-btn" onclick="goBack()">← Back</button>
+      <span class="header-icon">🪙</span>
+      <h1>Price Breakdown</h1>
+    </header>
+
+    <div class="results-wrap">
+
+      <div class="summary-bar">
+        <div class="summary-item">
+          <span class="s-label">Gold Rate / g</span>
+          <span class="s-val" id="sum-rate">—</span>
+        </div>
+        <div class="summary-item">
+          <span class="s-label">Net Weight</span>
+          <span class="s-val" id="sum-weight">—</span>
+        </div>
+        <div class="summary-item">
+          <span class="s-label">Wastage</span>
+          <span class="s-val" id="sum-wastage">—</span>
+        </div>
+        <div class="summary-item">
+          <span class="s-label">GST</span>
+          <span class="s-val">3%</span>
+        </div>
+      </div>
+
+      <div class="cards-grid">
+
+        <!-- 22K -->
+        <div class="result-card k22" id="card22">
+          <div class="card-header">
+            <span class="karat-name">22K Gold</span>
+            <span class="purity-chip">True Value</span>
+          </div>
+          <div class="line-item"><span class="li-name">Price / gram</span><span class="li-val accent" id="ppg22">—</span></div>
+          <div class="line-item"><span class="li-name">Net Weight</span><span class="li-val" id="wt22">—</span></div>
+          <div class="divider"></div>
+          <div class="line-item"><span class="li-name">Base Price</span><span class="li-val" id="base22">—</span></div>
+          <div class="line-item"><span class="li-name">Wastage</span><span class="li-val" id="waste22">—</span></div>
+          <div class="line-item gst-line"><span class="li-name">GST (3%)</span><span class="li-val" id="gst22">—</span></div>
+          <div class="total-row">
+            <span class="total-label">Total Price</span>
+            <span class="total-value" id="total22">—</span>
+          </div>
+        </div>
+
+        <!-- 20K -->
+        <div class="result-card k20" id="card20">
+          <div class="card-header">
+            <span class="karat-name">20K Gold</span>
+            <span class="purity-chip">True Value</span>
+          </div>
+          <div class="line-item"><span class="li-name">Price / gram</span><span class="li-val accent" id="ppg20">—</span></div>
+          <div class="line-item"><span class="li-name">Net Weight</span><span class="li-val" id="wt20">—</span></div>
+          <div class="divider"></div>
+          <div class="line-item"><span class="li-name">Base Price</span><span class="li-val" id="base20">—</span></div>
+          <div class="line-item"><span class="li-name">Wastage</span><span class="li-val" id="waste20">—</span></div>
+          <div class="line-item gst-line"><span class="li-name">GST (3%)</span><span class="li-val" id="gst20">—</span></div>
+          <div class="total-row">
+            <span class="total-label">Total Price</span>
+            <span class="total-value" id="total20">—</span>
+          </div>
+        </div>
+
+        <!-- 18K -->
+        <div class="result-card k18" id="card18">
+          <div class="card-header">
+            <span class="karat-name">18K Gold</span>
+            <span class="purity-chip">True Value</span>
+          </div>
+          <div class="line-item"><span class="li-name">Price / gram</span><span class="li-val accent" id="ppg18">—</span></div>
+          <div class="line-item"><span class="li-name">Net Weight</span><span class="li-val" id="wt18">—</span></div>
+          <div class="divider"></div>
+          <div class="line-item"><span class="li-name">Base Price</span><span class="li-val" id="base18">—</span></div>
+          <div class="line-item"><span class="li-name">Wastage</span><span class="li-val" id="waste18">—</span></div>
+          <div class="line-item gst-line"><span class="li-name">GST (3%)</span><span class="li-val" id="gst18">—</span></div>
+          <div class="total-row">
+            <span class="total-label">Total Price</span>
+            <span class="total-value" id="total18">—</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── Formatters ──────────────────────────────────────────
+  const fmt   = n => '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtWt = n => parseFloat(n).toFixed(3) + ' g';
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  // ── Java-matched calculation logic ──────────────────────
+  // Mirrors GoldCalculator.KaratResult constructor exactly
+  function calcKarat(goldPrice, purity, netWeight, wastagePercent) {
+    const pricePerGram  = goldPrice * purity * (1- 0.029);
+    const basePrice     = netWeight * pricePerGram;
+    const wastageAmount = basePrice * (wastagePercent / 100.0);
+    const gst           = (basePrice + wastageAmount) * 0.03;   // 3% on (base + wastage)
+    const totalPrice    = basePrice + wastageAmount + gst;
+    return { pricePerGram, basePrice, wastageAmount, gst, totalPrice };
+  }
+
+  const KARATS = [
+    { id: '22', purity: 0.93 },
+    { id: '20', purity: 0.89 },
+    { id: '18', purity: 0.75 },
+  ];
+
+  // ── Main calculate ──────────────────────────────────────
+  function calculate() {
+    const goldPrice    = parseFloat(document.getElementById('goldPrice').value);
+    const netWeight    = parseFloat(document.getElementById('netWeight').value);
+    const wastageVal   = document.getElementById('wastage').value;
+
+    if (!goldPrice  || isNaN(goldPrice))  { showToast('Please enter a valid Gold Price.'); return; }
+    if (!netWeight  || isNaN(netWeight))  { showToast('Please enter a valid Net Weight.'); return; }
+    if (!wastageVal)                       { showToast('Please select a Wastage %.'); return; }
+
+    const wastage = parseFloat(wastageVal);
+
+    document.getElementById('sum-rate').textContent    = fmt(goldPrice);
+    document.getElementById('sum-weight').textContent  = fmtWt(netWeight);
+    document.getElementById('sum-wastage').textContent = wastage + '%';
+
+    KARATS.forEach(({ id, purity }) => {
+      const r = calcKarat(goldPrice, purity, netWeight, wastage);
+      document.getElementById('ppg'   + id).textContent = fmt(r.pricePerGram);
+      document.getElementById('wt'    + id).textContent = fmtWt(netWeight);
+      document.getElementById('base'  + id).textContent = fmt(r.basePrice);
+      document.getElementById('waste' + id).textContent = fmt(r.wastageAmount);
+      document.getElementById('gst'   + id).textContent = fmt(r.gst);
+      document.getElementById('total' + id).textContent = fmt(r.totalPrice);
+    });
+
+    document.getElementById('pages').classList.add('show-results');
+    document.getElementById('page2').scrollTop = 0;
+
+    ['card22','card20','card18'].forEach((cid, i) => {
+      const el = document.getElementById(cid);
+      el.classList.remove('visible');
+      void el.offsetWidth;
+      setTimeout(() => el.classList.add('visible'), 70 + i * 95);
+    });
+  }
+
+  function goBack() {
+    document.getElementById('pages').classList.remove('show-results');
+  }
+
+  document.querySelectorAll('input').forEach(el =>
+    el.addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); })
+  );
+</script>
+</body>
+</html>
